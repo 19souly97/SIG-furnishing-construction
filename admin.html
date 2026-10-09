@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content editor | SIG Construction</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin{max-width:900px;margin:0 auto;padding:2rem 24px 4rem;}
+  .admin textarea{width:100%;min-height:280px;font-family:ui-monospace,Consolas,monospace;font-size:.82rem;padding:.8rem;border:1px solid var(--line);border-radius:8px;}
+  .admin-actions{display:flex;gap:.7rem;flex-wrap:wrap;margin:1rem 0 2rem;}
+  .ok{color:var(--amber-deep);font-weight:600;}
+</style>
+</head>
+<body data-page="home">
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="brand">SIG<span class="brand-sub">Content editor</span></a>
+    <a href="index.html" class="btn btn--ghost">Back to site</a>
+  </div>
+</header>
+<main class="admin">
+  <p class="eyebrow">CMS / admin</p>
+  <h1>Edit sectors &amp; partners</h1>
+  <p>This static site stores content in <code>js/content.js</code>. Use this editor to preview changes in the browser (saved to this device). To publish permanently, paste the JSON into <code>js/content.js</code> or send it to your developer.</p>
+  <h2>Sectors</h2>
+  <p>Each sector needs: id, active, order, title, nav, url, card, intro, seoTitle, seoDesc, hero, heroAlt, images, services, applications, capabilities.</p>
+  <textarea id="sectorsJson"></textarea>
+  <h2>Partners</h2>
+  <p>Each partner needs: id, active, order, name, country, initials, blurb. Upload official logos later — do not invent trademark artwork here.</p>
+  <textarea id="partnersJson"></textarea>
+  <div class="admin-actions">
+    <button class="btn btn--amber" id="saveBtn" type="button">Save preview to this browser</button>
+    <button class="btn btn--ghost" id="resetBtn" type="button">Clear preview override</button>
+    <button class="btn btn--ghost" id="exportBtn" type="button">Download JSON</button>
+  </div>
+  <p id="status" class="ok"></p>
+</main>
+<script src="js/content.js"></script>
+<script>
+  const sEl = document.getElementById('sectorsJson');
+  const pEl = document.getElementById('partnersJson');
+  const status = document.getElementById('status');
+  const load = () => {
+    sEl.value = JSON.stringify(SIG_CONTENT.sectors, null, 2);
+    pEl.value = JSON.stringify(SIG_CONTENT.partners, null, 2);
+  };
+  load();
+  document.getElementById('saveBtn').onclick = () => {
+    try {
+      const sectors = JSON.parse(sEl.value);
+      const partners = JSON.parse(pEl.value);
+      localStorage.setItem('sig-content-override', JSON.stringify({ sectors, partners }));
+      status.textContent = 'Saved. Reload the homepage to preview.';
+    } catch (e) {
+      status.textContent = 'Invalid JSON: ' + e.message;
+    }
+  };
+  document.getElementById('resetBtn').onclick = () => {
+    localStorage.removeItem('sig-content-override');
+    location.reload();
+  };
+  document.getElementById('exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify({ sectors: JSON.parse(sEl.value), partners: JSON.parse(pEl.value) }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sig-content.json';
+    a.click();
+  };
+</script>
+</body>
+</html>
